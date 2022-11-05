@@ -1,0 +1,325 @@
+html,
+body {
+    font-family: 'DM Sans', sans-serif;
+}
+
+.light-page,
+.input-group {
+    background-color: #fdfdfd;
+}
+
+.dark-page {
+    background-color: #1a1a1a;
+}
+
+.bg-image {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+@media (max-width: 768px) {
+    form button[type="submit"],
+    form input[type="url"] {
+        width: 100%;
+        margin-bottom: 1rem;
+        border-radius: .5rem !important;
+    }
+}
+
+.placeholder {
+    background-color: var(--bs-light);
+}
+
+.screenshot-wrapper .img-fluid,
+.screenshot-wrapper .placeholder {
+    height: 500px;
+    width: 100%;
+}
+
+
+.screenshot-wrapper .img-fluid {
+    object-fit: contain;
+}
+
+.liquid-bubble .placeholder {
+    border-radius: 50%;
+    width: 250px;
+    height: 250px;
+}
+
+.liquid-bubble .green .progress,
+.liquid-bubble .red .progress,
+.liquid-bubble .orange .progress {
+    background-color: #1a1a1a;
+    position: relative;
+    border-radius: 50%;
+    width: 250px;
+    height: 250px;
+}
+
+.liquid-bubble .green .progress {
+    border: 5px solid #53fc53;
+}
+
+.liquid-bubble .green .progress {
+    box-shadow: 0 0 20px #029502;
+}
+
+.liquid-bubble .green .progress,
+.liquid-bubble .red .progress,
+.liquid-bubble .orange .progress {
+    transition: all 1s ease;
+}
+
+.liquid-bubble .green .progress .inner,
+.liquid-bubble .red .progress .inner,
+.liquid-bubble .orange .progress .inner {
+    position: absolute;
+    overflow: hidden;
+    z-index: 2;
+    border-radius: 50%;
+}
+
+.liquid-bubble .green .progress .inner,
+.liquid-bubble .red .progress .inner,
+.liquid-bubble .orange .progress .inner {
+    width: 240px;
+    height: 240px;
+}
+
+.liquid-bubble .green .progress .inner,
+.liquid-bubble .red .progress .inner,
+.liquid-bubble .orange .progress .inner {
+    border: 5px solid #1a1a1a;
+}
+
+.liquid-bubble .green .progress .inner,
+.liquid-bubble .red .progress .inner,
+.liquid-bubble .orange .progress .inner {
+    transition: all 1s ease;
+}
+
+.liquid-bubble .green .progress .inner .water,
+.liquid-bubble .red .progress .inner .water,
+.liquid-bubble .orange .progress .inner .water {
+    position: absolute;
+    z-index: 1;
+    width: 200%;
+    height: 200%;
+    left: -50%;
+    border-radius: 40%;
+    -webkit-animation-iteration-count: infinite;
+    animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+    animation-timing-function: linear;
+    -webkit-animation-name: spin;
+    animation-name: spin;
+}
+
+.liquid-bubble .green .progress .inner .water {
+    top: 25%;
+}
+
+.liquid-bubble .green .progress .inner .water {
+    background: rgba(83, 252, 83, 0.5);
+}
+
+.liquid-bubble .green .progress .inner .water,
+.liquid-bubble .red .progress .inner .water,
+.liquid-bubble .orange .progress .inner .water {
+    transition: all 1s ease;
+}
+
+.liquid-bubble .green .progress .inner .water,
+.liquid-bubble .red .progress .inner .water,
+.liquid-bubble .orange .progress .inner .water {
+    -webkit-animation-duration: 10s;
+    animation-duration: 10s;
+}
+
+.liquid-bubble .green .progress .inner .water {
+    box-shadow: 0 0 20px #03bc03;
+}
+
+.liquid-bubble .green .progress .inner .glare,
+.liquid-bubble .red .progress .inner .glare,
+.liquid-bubble .orange .progress .inner .glare {
+    position: absolute;
+    top: -120%;
+    left: -120%;
+    z-index: 5;
+    width: 200%;
+    height: 200%;
+    transform: rotate(45deg);
+    border-radius: 50%;
+}
+
+.liquid-bubble .green .progress .inner .glare,
+.liquid-bubble .red .progress .inner .glare,
+.liquid-bubble .orange .progress .inner .glare {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.liquid-bubble .green .progress .inner .glare,
+.liquid-bubble .red .progress .inner .glare,
+.liquid-bubble .orange .progress .inner .glare {
+    transition: all 1s ease;
+}
+
+.liquid-bubble .green .progress .inner .percent,
+.liquid-bubble .red .progress .inner .percent,
+.liquid-bubble .orange .progress .inner .percent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    font-weight: bold;
+    text-align: center;
+}
+
+.liquid-bubble .green .progress .inner .percent,
+.liquid-bubble .red .progress .inner .percent,
+.liquid-bubble .orange .progress .inner .percent {
+    line-height: 240px;
+    font-size: 92.3076923076923px;
+}
+
+.liquid-bubble .green .progress .inner .percent {
+    color: #03c603;
+}
+
+.liquid-bubble .green .progress .inner .percent {
+    text-shadow: 0 0 10px #029502;
+}
+
+.liquid-bubble .green .progress .inner .percent,
+.liquid-bubble .red .progress .inner .percent,
+.liquid-bubble .orange .progress .inner .percent {
+    transition: all 1s ease;
+}
+
+.liquid-bubble .red {
+    margin-top: 15px;
+}
+
+.liquid-bubble .red .progress {
+    border: 5px solid #ed3b3b;
+}
+
+.liquid-bubble .red .progress {
+    box-shadow: 0 0 20px #7a0b0b;
+}
+
+.liquid-bubble .red .progress .inner .water {
+    top: 75%;
+}
+
+.liquid-bubble .red .progress .inner .water {
+    background: rgba(237, 59, 59, 0.5);
+}
+
+.liquid-bubble .red .progress .inner .water {
+    box-shadow: 0 0 20px #9b0e0e;
+}
+
+.liquid-bubble .red .progress .inner .percent {
+    color: #a30f0f;
+}
+
+.liquid-bubble .red .progress .inner .percent {
+    text-shadow: 0 0 10px #7a0b0b;
+}
+
+.liquid-bubble .orange {
+    margin-top: 15px;
+}
+
+.liquid-bubble .orange .progress {
+    border: 5px solid #f07c3e;
+}
+
+.liquid-bubble .orange .progress {
+    box-shadow: 0 0 20px #7e320a;
+}
+
+.liquid-bubble .orange .progress .inner .water {
+    top: 50%;
+}
+
+.liquid-bubble .orange .progress .inner .water {
+    background: rgba(240, 124, 62, 0.5);
+}
+
+.liquid-bubble .orange .progress .inner .water {
+    box-shadow: 0 0 20px #a0400c;
+}
+
+.liquid-bubble .orange .progress .inner .percent {
+    color: #a8430d;
+}
+
+.liquid-bubble .orange .progress .inner .percent {
+    text-shadow: 0 0 10px #7e320a;
+}
+
+
+@-webkit-keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.btn-orange:hover,
+.btn-orange:active {
+    background: #f07c3e;
+    border-color: #f07c3e;
+    color: rgba(0, 0, 0, .8);
+}
+
+.btn-orange {
+    background: rgba(240, 124, 62, .1);
+    border-color: #a8430d;
+    color: #a8430d;
+}
+
+.btn-green:active,
+.btn-green:hover {
+    background: #53fc53;
+    border-color: #53fc53;
+    color: rgba(0, 0, 0, .8);
+}
+
+.btn-green {
+    background: rgba(83, 252, 83, .1);
+    border-color: #03c603;
+    color: #03c603;
+}
+
+.btn-red:active,
+.btn-red:hover {
+    background: #ed3b3b;
+    border-color: #ed3b3b;
+    color: rgba(0, 0, 0, .8);
+}
+
+.btn-red {
+    background: rgba(237, 59, 59, .1);
+    border-color: #a30f0f;
+    color: #a30f0f;
+}

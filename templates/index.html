@@ -1,0 +1,64 @@
+{% extends 'base.html' %} {% block title %}Phising Detector by Mimie{% endblock %}
+{% block content %}
+<section class="container">
+    <div class="row align-items-center justify-content-center min-vh-100 py-5">
+        <div class="col-lg-10 my-5">
+            <div class="d-flex justify-content-center mb-3">
+                <figure class="text-center">
+                    <blockquote class="blockquote">
+                        <h1 class="fw-bold">Phishing Website Detector</h1>
+                    </blockquote>
+                    <figcaption class="blockquote-footer text-end fs-5">
+                        Created by <cite title="Mimie">Mimie</cite>
+                    </figcaption>
+                </figure>
+            </div>
+            <form action="{{ url_for('check') }}" method="get" class="input-group rounded">
+                <input type="url" id="target-url" name="target"
+                    class="form-control form-control-lg text-center border border-dark border-2 py-3"
+                    placeholder="http://phish-site.com/malicious-url" required />
+
+                <button class="btn btn-dark fs-5 py-3 px-5" type="submit">Let's find out</button>
+            </form>
+        </div>
+        <div class="col-10 my-5">
+            <div class="row text-center">
+                <div class="col-md py-2">
+                    <div class="card shadow-sm p-4 border border-dark border-2">
+                        <div id="web-visits" class="display-5 fw-bold text-primary"></div>
+                        <p class="fs-5 fw-semibold">Total website visits</p>
+                    </div>
+                </div>
+                <div class="col py-2">
+                    <div class="card shadow-sm p-4 border border-dark border-2">
+                        <div id="web-checked" class="display-5 fw-bold text-secondary"></div>
+                        <p class="fs-5 fw-semibold">Total website checked</p>
+                    </div>
+                </div>
+                <div class="col py-2">
+                    <div class="card shadow-sm p-4 border border-dark border-2">
+                        <div id="web-phished" class="display-5 fw-bold text-danger"></div>
+                        <p class="fs-5 fw-semibold">Total phished websites</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script>
+    var eventSource = new EventSource("{{ url_for('listen') }}")
+
+    eventSource.addEventListener("stats", function (e) {
+        console.log(e.data);
+        data = JSON.parse(e.data);
+        $("#web-visits").text(data.visits);
+        $("#web-checked").text(data.checked);
+        $("#web-phished").text(data.phished);
+    }, true)
+</script>
+{% endblock %}
