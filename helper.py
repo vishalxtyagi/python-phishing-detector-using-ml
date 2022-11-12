@@ -1,17 +1,16 @@
 from features import FeatureExtraction
-from flask import send_from_directory, url_for
+from flask import send_from_directory
 from html2image import Html2Image
 from urllib.parse import urlparse
-from werkzeug.utils import secure_filename
 import numpy as np
 import validators
 import pickle
-import time
 import re
 import os
 
 
 screenshot_dir = 'screenshot/'
+stats_params = ('visits', 'checked', 'phished')
 
 h2i = Html2Image()
 h2i.output_path = screenshot_dir
@@ -22,6 +21,7 @@ model = pickle.load(open("model.pkl", "rb"))
 
 
 def format_url(url):
+    url = url.strip()
     if not re.match('(?:http|ftp|https)://', url):
         return 'http://{}'.format(url)
     return url
@@ -32,7 +32,7 @@ def capture_screenshot(target_url, filename='screenshot.png', size=(1920, 1080))
     return send_from_directory(screenshot_dir, path=filename)
 
 
-def get_phishing_result(target_url, config=None):
+def get_phishing_result(target_url):
     target_url = format_url(target_url)
     if not (target_url and validators.url(target_url)):
         return dict(status=False, message="You have provided an invalid target url, Please try again after updating the url.")
@@ -40,35 +40,22 @@ def get_phishing_result(target_url, config=None):
     try:
         update_stats('checked')
         target = urlparse(target_url)
-        
-        ssHeight = None
-        ssWidth = None
 
-        if "screenshot" in config:
-            ssHeight = config["screenshot"]["height"]
-            ssWidth = config["screenshot"]["width"]
+        features_obj = FeatureExtraction(target_url)
+        x = np.array(features_obj.getFeaturesList()).reshape(1, 30)
+        pred = model.predict_proba(x)[0]
 
-        screenshot_uri = url_for('screenshot', target=target_url, height=ssHeight, width=ssWidth)
-        # features_obj = FeatureExtraction(target_url)
-        # x = np.array(features_obj.getFeaturesList()).reshape(1, 30)
-        # y_pred = model.predict(x)[0]  # 1 is safe -1 is not
-        # y_pro_phishing = model.predict_proba(x)[0, 0]
-        # y_pro_non_phishing = model.predict_proba(x)[0, 1]
-        # pred = "It is {0:.2f}% safe to go ".format(y_pro_phishing*100)
-        # xx = round(y_pro_non_phishing, 2)
+        safe_pred = pred[0]
+        unsafe_pred = pred[1]
+
+        if unsafe_pred > 1/3:
+            update_stats('phished')
 
         return dict(
             status=True,
             domain=target.netloc,
             target=target_url,
-            screenshot=screenshot_uri,
-            # features_obj=features_obj,
-            # x=x,
-            # y_pred=y_pred,
-            # y_pro_phishing=y_pro_phishing,
-            # y_pro_non_phishing=y_pro_non_phishing,
-            # pred=pred,
-            # xx=xx
+            safe_percentage=safe_pred*100
         )
     except Exception as e:
         return dict(status=False, message=str(e))
@@ -94,12 +81,17 @@ def update_stats(key):
     stats = get_stats()
     with open("stats.txt", "w+") as file:
         if stats is False:
-            file.write('visits:0\nchecked:0\nphished:0')
+            file.write('\n'.join([f"{x}:0" for x in stats_params]))
         else:
             lines = []
+            avail_params = list(stats_params)
             for k, v in stats.items():
+                avail_params.remove(k)
                 if k == key:
                     v += 1
                 lines.append(f"{k}:{v}")
+            if len(avail_params) > 0:
+                for param in avail_params:
+                    lines.append(f"{param}:0")
             file.write("\n".join(lines))
         file.flush()

@@ -1,216 +1,173 @@
-{% extends 'base.html' %} {% block title %}Processing | Phishing Website Detector{% endblock %}
-{% set page_name = 'dark' -%}
+{% extends 'base.html' %}
+{% block title %}Processing | Phishing Website Detector{% endblock %}
+
+{% set theme = 'dark' -%}
 
 {% block content %}
-<section id="result-section">
-    <div class="container-fluid min-vh-100 h-100 bg-image">
-        <div class="row align-items-center justify-content-center min-vh-100 py-5">
-            <div class="relative">
-                <div class="text-center">
-                    <div class="liquid-bubble mb-5">
-                        <div class="green d-none">
-                            <div class="progress mx-auto">
-                                <div class="inner">
-                                    <div class="percent"></div>
-                                    <div class="water"></div>
-                                    <div class="glare"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="placeholder-glow skeleton-loader">
-                            <span class="placeholder placeholder-liquid-bubble"></span>
-                        </div>
-                    </div>
-                    <div class="placeholder-glow pt-5">
-                        <button class="btn btn-lg placeholder col-6 skeleton-loader"></button>
-                        <button id="web-button" class="btn btn-lg btn-orange px-lg-5 d-none">Continue to
-                            website</button>
-                    </div>
-                </div>
-                <div class="screenshot-wrapper px-lg-5">
-                    <img id="web-screenshot" class="img-fluid d-none">
-                    <div class="placeholder-glow skeleton-loader">
-                        <span class="placeholder"></span>
-                    </div>
-                </div>
-            </div>
+<div class="card card--result color-bg-dark">
+  <img class="screenshot--target card-img rounded-0" alt="{{target}}" style="display: none;">
+  <div class="screenshot--skeleton placeholder-glow">
+    <span class="placeholder"></span>
+  </div>
+
+  <div class="card-img-overlay content--wrapper">
+    <div class="content--area placeholder-glow">
+      <div class="liquid-ball placeholder">
+        <div class="ball-inner">
+          <div class="ball-percent"></div>
+          <div class="ball-water"></div>
+          <div class="ball-glare"></div>
         </div>
+      </div>
+      <button id="web-button" class="btn btn-lg btn-redirect placeholder px-lg-5">Continue to
+        website</button>
     </div>
-</section>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
 <script>
-    let alertOpen = false;
+  function setTargetScreenshot() {
+    var targetScreenshot = $(".screenshot--target");
+    var skeletonScreenshot = $(".screenshot--skeleton");
 
-    function phishedAlert() {
-        alertOpen = true;
-        Swal.fire({
-            title: "Phished Website!!",
-            text: "It's too dangerous to continue, hence we can't allow this action.",
-            showCancelButton: true,
-            showConfirmButton: false,
-            showDenyButton: true,
-            denyButtonText: 'Back to home'
-        }).then((result) => {
-            alertOpen = false;
-            if (result.isDenied) {
-                window.location = "{{ url_for('home') }}";
-            }
-        });
-    }
+    targetScreenshot.hide();
+    skeletonScreenshot.show();
 
-    function warningAlert(target) {
-        alertOpen = true;
-        Swal.fire({
-            title: "Seems unsafe to me!!",
-            text: "It's too dangerous to continue, hence we can't allow this action.",
-            showCancelButton: true,
-            showConfirmButton: true,
-            confirmButtonText: 'Continue anyways'
-        }).then((result) => {
-            alertOpen = false;
-            window.location = target;
-        });
-    }
+    var height = $(window).height();
+    var width = $(window).width();
 
-    function safeAlert(target) {
-        alertOpen = true;
-        Swal.fire({
-            title: "Hurray! You're safe",
-            html: "You'll be redirected to the website...",
-            timer: 3000,
-            timerProgressBar: true
-        }).then((result) => {
-            alertOpen = false;
-            if (result.dismiss === Swal.DismissReason.timer) {
-                window.location = target;
-            }
-        });
-    }
-
-    function feedbackForm() {
-        alertOpen = true;
-        Swal.fire({
-            position: 'bottom-end',
-            icon: 'question',
-            title: 'Are you happy with the results?',
-            input: 'textarea',
-            inputPlaceholder: 'Type your feedback here...',
-            inputAttributes: {
-                'aria-label': 'Type your feedback here'
-            },
-            showConfirmButton: true,
-            showCancelButton: true,
-            confirmButtonText: 'Submit',
-        }).then((result) => {
-            alertOpen = false;
-        });
-    }
-
-    $(function () {
-
-        let timerInterval;
-        var colorInc = 100 / 3;
-
-        var height = $(window).height();
-        var width = $(window).width();
-
-        $.ajax({
-            type: "POST",
-            url: "{{ url_for('check') }}",
-            contentType: "application/json",
-            data: JSON.stringify({
-                target: "{{target}}",
-                config: {
-                    screenshot: {
-                        height,
-                        width
-                    }
-                }
-            }),
-            dataType: "json",
-            success: function (data, status) {
-                    console.log("Data: " + JSON.stringify(data) + "\nStatus: " + status);
-                if (data.status) {
-                    var percentage = 90;
-
-                    $(".bg-image").css("background-image", `url(${data.screenshot})`)
-
-                    // $("#web-screenshot").attr("src", data.screenshot).removeClass("d-none");
-                    $(".skeleton-loader:not(.btn)").hide()
-
-                    if (percentage != "" &&
-                        !isNaN(percentage) &&
-                        percentage <= 100 &&
-                        percentage >= 0) {
-
-                        var percentageOrig = percentage;
-                        percentage = 100 - percentage;
-
-                        $(".progress .percent").text(percentageOrig + "%");
-                        $(".progress").parent().removeClass();
-                        $(".progress .water").css("top", percentage + "%");
-
-                        if (percentageOrig < colorInc * 1) {
-                            $(".progress").parent().addClass("red");
-                            $("#web-button").addClass("btn-red").attr("onClick", "phishedAlert()");
-                        } else if (percentageOrig < colorInc * 2) {
-                            $(".progress").parent().addClass("orange");
-                            $("#web-button").addClass("btn-orange").attr("onClick",
-                                `warningAlert('${data.status}')`);
-                        } else {
-                            $(".progress").parent().addClass("green");
-                            $("#web-button").addClass("btn-green").attr("onClick",
-                                `safeAlert('${data.target}')`);
-                        }
-                    } else {
-                        $(".progress").parent().removeClass();
-                        $(".progress").parent().addClass("orange");
-                        $("#web-button").addClass("btn-orange");
-                        $(".progress .water").css("top", "100%");
-                        $(".progress .percent").text("NaN");
-                    }
-
-                    $(".skeleton-loader").hide();
-                    $("#web-button").removeClass('d-none');
-
-                    var feedbackId = setInterval(() => {
-                        if (!alertOpen) {
-                            clearInterval(feedbackId);
-                            feedbackForm()
-                        }
-                    }, 5000);
-
-                } else {
-                    $(".placeholder-glow, .placeholder").css("animation", "none");
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops! Something went wrong!',
-                        text: data.message,
-                        input: 'url',
-                        showDenyButton: true,
-                        denyButtonText: 'Back to home',
-                        confirmButtonText: 'Check again',
-                        inputPlaceholder: 'Enter the URL',
-                        allowOutsideClick: false
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location =
-                                `{{ url_for('check') }}?target=${result.value}`;
-                        } else if (result.isDenied) {
-                            window.location = "{{ url_for('home') }}";
-                        }
-                    });
-                }
-            }
-        });
+    targetScreenshot.attr("src", `{{ url_for('screenshot', target=target) }}&width=${width}&height=${height}`);
+    targetScreenshot.on('load', function () {
+      skeletonScreenshot.hide();
+      $(this).show();
     });
+  }
 
-    $(window).on('resize', function(){
-        $("#result-section").hide();
-        location.reload();
+  function showResult(data) {
+    var variantInc = 100 / 3;
+    var percentage = data.safe_percentage;
+
+    if (percentage !== "" &&
+      !isNaN(percentage) &&
+      percentage <= 100 &&
+      percentage >= 0) {
+
+      var waterLevel = 100 - percentage;
+
+      $(".ball-percent").append($("<span>").text(percentage + "%"));
+      $(".ball-percent").append($("<span>").text("safe"));
+      $(".ball-water").css("top", waterLevel + "%");
+
+      if (percentage < variantInc * 1) {
+        $(".content--area").addClass("content--unsafe");
+        $(".btn-redirect").attr("onClick", "phishedAlert()");
+      } else if (percentage < variantInc * 2) {
+        $(".content--area").addClass("content--doubt");
+        $(".btn-redirect").attr("onClick", `warningAlert('${data.status}')`);
+      } else {
+        $(".content--area").addClass("content--safe");
+        $(".btn-redirect").attr("onClick", `safeAlert('${data.target}')`);
+      }
+    } else {
+      $(".ball-water").css("top", "100%");
+      $(".ball-percent").text("NaN").css("font-size", "92px");
+      $(".content--area").addClass("content--doubt");
+    }
+
+    $(".content--area").find(".placeholder").removeClass("placeholder");
+    $(".content--area").removeClass("placeholder-glow");
+  }
+
+  function phishedAlert() {
+    Swal.fire({
+      title: "Phished Website!!",
+      text: "It's too dangerous to continue, hence we can't allow this action.",
+      showCancelButton: true,
+      showConfirmButton: false,
+      showDenyButton: true,
+      denyButtonText: 'Back to home'
+    }).then((result) => {
+      if (result.isDenied) {
+        window.location = "{{ url_for('home') }}";
+      }
     });
+  }
+
+  function warningAlert(target) {
+    Swal.fire({
+      title: "Seems unsafe to me!!",
+      text: "It's too dangerous to continue, hence we can't allow this action.",
+      showCancelButton: true,
+      showConfirmButton: true,
+      confirmButtonText: 'Continue anyways'
+    }).then((result) => {
+      window.location = target;
+    });
+  }
+
+  function safeAlert(target) {
+    Swal.fire({
+      title: "Hurray! You're safe",
+      html: "You'll be redirected to the website...",
+      timer: 3000,
+      timerProgressBar: true
+    }).then((result) => {
+      if (result.dismiss === Swal.DismissReason.timer) {
+        window.location = target;
+      }
+    });
+  }
+
+  function invalidAlert(error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Oops! Something went wrong!',
+      text: error,
+      input: 'url',
+      showDenyButton: true,
+      denyButtonText: 'Back to home',
+      confirmButtonText: 'Check again',
+      inputPlaceholder: 'Enter the URL',
+      allowOutsideClick: false
+    }).then((result) => {
+      if (result.isConfirmed) {
+        window.location =
+          `{{ url_for('check') }}?target=${result.value}`;
+      } else if (result.isDenied) {
+        window.location = "{{ url_for('home') }}";
+      }
+    });
+  }
+
+  $(function () {
+
+    setTargetScreenshot();
+
+    $.ajax({
+      type: "POST",
+      url: "{{ url_for('check') }}",
+      contentType: "application/json",
+      data: JSON.stringify({
+        target: "{{target}}",
+      }),
+      dataType: "json",
+      success: function (data, status) {
+        console.log("Data: " + JSON.stringify(data) + "\nStatus: " + status);
+        if (data.status) {
+          showResult(data);
+        } else {
+          showResult("");
+          invalidAlert(data.error);
+        }
+      },
+    });
+  });
+
+  $(window).on('resize', function () {
+    setTargetScreenshot();
+  });
 </script>
 {% endblock %}

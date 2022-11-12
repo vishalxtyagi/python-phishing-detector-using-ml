@@ -1,10 +1,11 @@
-from flask import Flask, Response, render_template, request, send_from_directory, jsonify, abort, url_for
-from werkzeug.utils import secure_filename
+from flask import Flask, Response, render_template, request, send_from_directory, jsonify, abort
 from helper import get_phishing_result, get_stats, update_stats, capture_screenshot, screenshot_dir
+from werkzeug.utils import secure_filename
 from datetime import date
 import time
 import json
 import os
+
 
 app = Flask(__name__)
 app.secret_key = os.urandom(12).hex()
@@ -23,13 +24,11 @@ def home():
 def check():
     update_stats('visits')
     if request.method == "POST":
-        data = request.json
-        result = get_phishing_result(
-            target_url=data['target'], config=data['config'])
+        target_url = request.json['target']
+        result = get_phishing_result(target_url=target_url)
         return jsonify(result)
     target_url = request.args.get("target")
     return render_template('check.html', target=target_url)
-
 
 @app.route("/listen")
 def listen():
@@ -59,8 +58,7 @@ def screenshot():
             width = int(query.get("width"))
             height = int(query.get("height"))
 
-        ss_file_name = secure_filename(
-            "{}-{}-{}x{}.png".format(target_url, today_date, width, height))
+        ss_file_name = secure_filename(f"{target_url}-{today_date}-{width}x{height}.png")
         ss_file_path = os.path.join(screenshot_dir, ss_file_name)
 
         if os.path.exists(ss_file_path):
