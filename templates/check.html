@@ -48,7 +48,8 @@
 
   function showResult(data) {
     var variantInc = 100 / 3;
-    var percentage = data.safe_percentage;
+    var safe_percentage = data.safe_percentage;
+    var percentage = Math.max(data.safe_percentage, data.unsafe_percentage);
 
     if (percentage !== "" &&
       !isNaN(percentage) &&
@@ -57,18 +58,23 @@
 
       var waterLevel = 100 - percentage;
 
-      $(".ball-percent").append($("<span>").text(percentage + "%"));
-      $(".ball-percent").append($("<span>").text("safe"));
+      $(".ball-percent").append($("<span>").text(percentage.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 1,
+      }) + "%"));
       $(".ball-water").css("top", waterLevel + "%");
 
-      if (percentage < variantInc * 1) {
+      if (safe_percentage < variantInc * 1) {
         $(".content--area").addClass("content--unsafe");
+        $(".ball-percent").append($("<span>").text("unsafe"));
         $(".btn-redirect").attr("onClick", "phishedAlert()");
-      } else if (percentage < variantInc * 2) {
+      } else if (safe_percentage < variantInc * 2) {
         $(".content--area").addClass("content--doubt");
-        $(".btn-redirect").attr("onClick", `warningAlert('${data.status}')`);
+        $(".ball-percent").append($("<span>").text("doubt"));
+        $(".btn-redirect").attr("onClick", `warningAlert('${data.target}')`);
       } else {
         $(".content--area").addClass("content--safe");
+        $(".ball-percent").append($("<span>").text("safe"));
         $(".btn-redirect").attr("onClick", `safeAlert('${data.target}')`);
       }
     } else {

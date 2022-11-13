@@ -43,19 +43,20 @@ def get_phishing_result(target_url):
 
         features_obj = FeatureExtraction(target_url)
         x = np.array(features_obj.getFeaturesList()).reshape(1, 30)
-        pred = model.predict_proba(x)[0]
+        pred = model.predict(x)[0]  # 1 is safe & -1 is not
+        pred_prob = model.predict_proba(x)
+        unsafe_prob = pred_prob[:, 0][0]
+        safe_prob = pred_prob[:, 1][0]
 
-        safe_pred = pred[0]
-        unsafe_pred = pred[1]
-
-        if unsafe_pred > 1/3:
+        if pred == -1:
             update_stats('phished')
 
         return dict(
             status=True,
             domain=target.netloc,
             target=target_url,
-            safe_percentage=safe_pred*100
+            safe_percentage=safe_prob*100,
+            unsafe_percentage=unsafe_prob*100
         )
     except Exception as e:
         return dict(status=False, message=str(e))
