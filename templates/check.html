@@ -110,7 +110,7 @@
       showConfirmButton: true,
       confirmButtonText: 'Continue anyways'
     }).then((result) => {
-      window.location = target;
+      window.open(target, "_blank");
     });
   }
 
@@ -122,7 +122,7 @@
       timerProgressBar: true
     }).then((result) => {
       if (result.dismiss === Swal.DismissReason.timer) {
-        window.location = target;
+        window.open(target, "_blank");
       }
     });
   }

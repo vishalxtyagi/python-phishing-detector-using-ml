@@ -2,7 +2,7 @@ from features import FeatureExtraction
 from flask import send_from_directory
 from html2image import Html2Image
 from urllib.parse import urlparse
-import numpy as np
+import pandas as pd
 import validators
 import pickle
 import re
@@ -42,13 +42,15 @@ def get_phishing_result(target_url):
         target = urlparse(target_url)
 
         features_obj = FeatureExtraction(target_url)
-        x = np.array(features_obj.getFeaturesList()).reshape(1, 30)
-        pred = model.predict(x)[0]  # 1 is safe & -1 is not
-        pred_prob = model.predict_proba(x)
-        unsafe_prob = pred_prob[:, 0][0]
-        safe_prob = pred_prob[:, 1][0]
+        x = pd.DataFrame.from_dict(features_obj.getFeaturesDict(), orient='index').T
 
-        if pred == -1:
+        pred = model.predict(x)[0]  # 1 is phished & 0 is not
+
+        pred_prob = model.predict_proba(x)[0]
+        safe_prob = pred_prob[0]
+        unsafe_prob = pred_prob[1]
+
+        if pred == 1:
             update_stats('phished')
 
         return dict(
