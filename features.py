@@ -78,7 +78,7 @@ class FeatureExtraction:
             "double_slash_redirecting": self.double_slash_redirecting(),
             "Prefix_Suffix": self.Prefix_Suffix(),
             "having_Sub_Domain": self.having_Sub_Domain(),
-            "URL_Depth": self.URL_Depth(),
+            # "URL_Depth": self.URL_Depth(),
             "Domain_registeration_length": self.Domain_registeration_length(),
             "Favicon": self.Favicon(),
             "port": self.port(),
