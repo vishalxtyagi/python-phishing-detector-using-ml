@@ -1,9 +1,11 @@
 from features import FeatureExtraction
 from flask import send_from_directory
-from html2image import Html2Image
 from urllib.parse import urlparse
+from io import BytesIO
+from PIL import Image
 import pandas as pd
 import validators
+import requests
 import pickle
 import re
 import os
@@ -11,10 +13,6 @@ import os
 
 screenshot_dir = 'screenshot/'
 stats_params = ('visits', 'checked', 'phished')
-
-h2i = Html2Image()
-h2i.output_path = screenshot_dir
-
 
 stats_filename = 'stats.txt'
 model = pickle.load(open("model.pkl", "rb"))
@@ -28,9 +26,25 @@ def format_url(url):
 
 
 def capture_screenshot(target_url, filename='screenshot.png', size=(1920, 1080)):
-    h2i.screenshot(url=target_url, save_as=filename, size=size)
-    return send_from_directory(screenshot_dir, path=filename)
-
+    # Create the image URL
+    image_url = f"https://image.thum.io/get/width/{size[0]}/height/{size[1]}/{target_url}"
+    
+    # Fetch the image from the URL
+    response = requests.get(image_url)
+    
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Open the image from the response content
+        screenshot = Image.open(BytesIO(response.content))
+        
+        # Save the image locally
+        screenshot_path = f"{screenshot_dir}/{filename}"
+        screenshot.save(screenshot_path)
+        
+        # Return the image file
+        return send_from_directory(screenshot_dir, filename)
+    else:
+        raise Exception("Failed to capture screenshot, HTTP Status code: " + str(response.status_code))
 
 def get_phishing_result(target_url):
     target_url = format_url(target_url)
