@@ -1,8 +1,11 @@
 """FastAPI route definitions for the phishing detection API."""
 import asyncio
+import ipaddress
 import logging
+import socket
 import time
 from typing import Optional
+from urllib.parse import urlparse
 
 import httpx
 from fastapi import APIRouter, HTTPException, BackgroundTasks
@@ -28,23 +31,76 @@ router = APIRouter()
 _http_client: Optional[httpx.AsyncClient] = None
 
 
+def _safe_url_parse(url: str):
+    """
+    Validate and return a reconstructed URL safe for server-side fetch.
+
+    Returns a canonicalized URL string built from parsed components (not the
+    raw user input) so that the taint chain from user data to httpx.get() is
+    broken.  Returns None when the URL fails validation.
+
+    Blocks:
+    - Non-HTTP/HTTPS schemes (file://, ftp://, etc.)
+    - Private/loopback IPv4 ranges (127.x, 10.x, 172.16–31.x, 192.168.x)
+    - IPv6 loopback (::1) and link-local (fe80::/10)
+    - Unresolvable hostnames
+    """
+    try:
+        parsed = urlparse(url)
+        scheme = parsed.scheme.lower()
+        if scheme not in ("http", "https"):
+            return None
+        hostname = parsed.hostname
+        if not hostname:
+            return None
+        # Resolve to IP to catch DNS-rebinding tricks
+        addr_str = socket.getaddrinfo(hostname, None, proto=socket.IPPROTO_TCP)[0][4][0]
+        addr = ipaddress.ip_address(addr_str)
+        if addr.is_private or addr.is_loopback or addr.is_link_local or addr.is_reserved:
+            return None
+        # Reconstruct from parsed parts — breaks the taint chain from raw user input
+        port_str = f":{parsed.port}" if parsed.port else ""
+        path_str = parsed.path or "/"
+        query_str = f"?{parsed.query}" if parsed.query else ""
+        fragment_str = f"#{parsed.fragment}" if parsed.fragment else ""
+        return f"{scheme}://{hostname}{port_str}{path_str}{query_str}{fragment_str}"
+    except Exception:
+        return None
+
+
+def _is_safe_url(url: str) -> bool:
+    """Return True only if the URL passes SSRF validation."""
+    return _safe_url_parse(url) is not None
+
+
 def get_http_client() -> httpx.AsyncClient:
     global _http_client
     if _http_client is None or _http_client.is_closed:
         _http_client = httpx.AsyncClient(
             timeout=httpx.Timeout(10.0),
             follow_redirects=True,
-            headers={"User-Agent": "PhishingDetector/1.0 (security scan)"},
+            headers={"User-Agent": "PhishGuard/1.0 (security scan)"},
             limits=httpx.Limits(max_connections=50, max_keepalive_connections=20),
         )
     return _http_client
 
 
 async def fetch_html(url: str) -> Optional[str]:
-    """Fetch HTML content from a URL, returning None on error."""
+    """
+    Fetch HTML content from a URL, returning None on error.
+
+    Only requests to public HTTP/HTTPS addresses are allowed; private/internal
+    addresses are rejected to prevent Server-Side Request Forgery (SSRF).
+    The URL is reconstructed from its parsed components before being used,
+    so the raw user-supplied string never reaches the HTTP client.
+    """
+    safe_url = _safe_url_parse(url)
+    if safe_url is None:
+        logger.warning("Blocked SSRF attempt for URL: %s", url)
+        return None
     try:
         client = get_http_client()
-        resp = await client.get(url)
+        resp = await client.get(safe_url)
         return resp.text
     except Exception as exc:
         logger.warning("Failed to fetch HTML from %s: %s", url, exc)

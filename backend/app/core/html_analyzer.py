@@ -103,9 +103,8 @@ def extract_html_features(url: str, html: str) -> dict:
         "wellsfargo", "citibank", "ebay", "dropbox",
     ]
     title_brand_mismatch = False
-    import re as _re
     for brand in KNOWN_BRANDS:
-        if _re.search(r'\b' + brand + r'\b', title_text):
+        if re.search(r'\b' + brand + r'\b', title_text):
             # Check if brand appears as an exact subdomain/domain component
             domain_parts = base_domain.lower().replace("www.", "").split(".")
             if brand not in domain_parts:

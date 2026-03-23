@@ -45,7 +45,7 @@ function showResult(data) {
   const score = data.risk_score;
   $circle.textContent = score;
 
-  // Colour the circle
+  // Color the circle
   if (score < 30) {
     $circle.style.borderColor = "#198754";
     $circle.style.color       = "#198754";

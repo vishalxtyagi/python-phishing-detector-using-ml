@@ -224,3 +224,29 @@ def test_batch_scan_endpoint():
     data = resp.json()
     assert data["total_scanned"] == 2
     assert len(data["results"]) == 2
+
+
+# ---------------------------------------------------------------------------
+# SSRF protection
+# ---------------------------------------------------------------------------
+
+
+def test_ssrf_block_private_ip():
+    """fetch_html must return None for private/loopback addresses."""
+    from app.api.routes import _is_safe_url
+
+    # Private / loopback ranges must be blocked
+    assert _is_safe_url("http://127.0.0.1/secret") is False
+    assert _is_safe_url("http://localhost/secret") is False
+    assert _is_safe_url("http://10.0.0.1/internal") is False
+    assert _is_safe_url("http://192.168.1.1/admin") is False
+    assert _is_safe_url("http://172.16.0.1/api") is False
+
+
+def test_ssrf_block_non_http_schemes():
+    """fetch_html must reject non-HTTP/HTTPS schemes."""
+    from app.api.routes import _is_safe_url
+
+    assert _is_safe_url("file:///etc/passwd") is False
+    assert _is_safe_url("ftp://files.internal/data") is False
+    assert _is_safe_url("dict://127.0.0.1:11211/info") is False
