@@ -88,8 +88,9 @@ def extract_html_features(url: str, html: str) -> dict:
             break
 
     # ----- Favicon ---------------------------------------------------------------
-    has_favicon = bool(
-        soup.find("link", rel=lambda v: v and "icon" in " ".join(v).lower())
+    has_favicon = any(
+        "icon" in " ".join(link.get("rel", [])).lower()
+        for link in soup.find_all("link")
     )
 
     # ----- Title / brand mismatch -------------------------------------------------
@@ -102,10 +103,14 @@ def extract_html_features(url: str, html: str) -> dict:
         "wellsfargo", "citibank", "ebay", "dropbox",
     ]
     title_brand_mismatch = False
+    import re as _re
     for brand in KNOWN_BRANDS:
-        if brand in title_text and brand not in base_domain.lower():
-            title_brand_mismatch = True
-            break
+        if _re.search(r'\b' + brand + r'\b', title_text):
+            # Check if brand appears as an exact subdomain/domain component
+            domain_parts = base_domain.lower().replace("www.", "").split(".")
+            if brand not in domain_parts:
+                title_brand_mismatch = True
+                break
 
     return {
         "has_password_field": has_password_field,

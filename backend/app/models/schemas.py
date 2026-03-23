@@ -4,7 +4,8 @@ from pydantic import BaseModel, HttpUrl, Field
 
 
 class ScanURLRequest(BaseModel):
-    url: str = Field(..., description="URL to scan for phishing", example="https://example.com")
+    url: str = Field(..., description="URL to scan for phishing",
+                     json_schema_extra={"example": "https://example.com"})
     fetch_html: bool = Field(
         default=True,
         description="Whether to fetch and analyze the page HTML"
